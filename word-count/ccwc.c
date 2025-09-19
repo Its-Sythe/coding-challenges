@@ -2,11 +2,45 @@
 #include <string.h>
 #include <ctype.h>
 
+int count_char(int ch, int count) {
+    if (ch) {
+        count++;
+    }
+    return count;
+}
+
+int line_count(int ch, int count) {
+    if (ch == '\n') {
+        count++;
+    }
+    return count;
+}
+
+int word_count(int ch, int count, int *in_word) {
+    if (isspace(ch)) {
+        *in_word = 0;
+    } else {
+        if (*in_word == 0) {
+            *in_word = 1;
+            count++;
+        }
+    }
+    return count;
+}
+
+int m_count(int ch, int count) {
+    if ((ch & 0xC0) != 0x80) {
+        count++;
+    }
+    return count;
+}
+
+
 int main(int argc, char *argv[]) {
     char *command = argv[1];
     char *filename = argv[2];
 
-    if ((sizeof(argv)/sizeof(argv[0])) == 1) {
+    if (filename == NULL) {
         filename = argv[1]
     }
 
@@ -18,40 +52,27 @@ int main(int argc, char *argv[]) {
     } else {
         char ch;
         int count = 0;
-        int inWord = 0;
+        int in_word = 0;
 
         while ((ch = fgetc(fptr)) != EOF) {
             if (strcmp(command, "-c") == 0) {
-                if (ch) {
-                    count++;
-                }
+                count_char(ch, count);
             }
 
             if (strcmp(command, "-l") == 0) {
-                if (ch == '\n') {
-                    count++;
-                }
+                line_count(ch, count);
             } 
 
             if (strcmp(command, "-w") == 0) {
-                if (isspace(ch)) {
-                    inWord = 0;
-                } else {
-                    if (inWord == 0) {
-                        inWord = 1;
-                        count++;
-                    }
-                }
+                count = word_count(ch, count, &in_word);
             }
             
             if (strcmp(command, "-m") == 0) {
-                if ((ch & 0xC0) != 0x80) {
-                    count++;
-                }
+                count = m_count(ch, count);
             } 
 
             if (command == NULL) {
-
+                
             }
         }
         printf("%d%s%s\n", count, " ", filename);
